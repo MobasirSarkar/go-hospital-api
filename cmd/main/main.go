@@ -1,39 +1,25 @@
 package main
 
 import (
-	"fmt"
 	"log"
-	"net/http"
-	"os"
 
-	"github.com/joho/godotenv"
+	"mymodule/pkg/handlers"
+	"mymodule/pkg/utils"
+	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
-func serverRun(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "main")
-}
-
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatalf("Error loading%v", err)
-	}
 
-	port := os.Getenv("PORT")
-	if port == "" {
-		log.Fatal("PORT is not .env file")
-	}
+	DB := utils.Init()
+	h := handlers.New(DB)
+	router := mux.NewRouter()
+	utils.CountryData()
 
+	router.HandleFunc("/users", h.AddUser).Methods(http.MethodPost)
 
-	http.HandleFunc("/", serverRun)
-	fmt.Printf("server is listening on port %s...\n", port)
-	fmt.Printf("http://localhost:%s\n", port)
+	log.Println("Api is running")
+	http.ListenAndServe(":4000", router)
 
-
-	err = http.ListenAndServe(":"+port, nil)
-	if err != nil {
-		log.Fatalf("Error starting server: %v ", err)
-	}
-
-	
 }
